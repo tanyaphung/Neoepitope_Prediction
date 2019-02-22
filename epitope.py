@@ -235,7 +235,7 @@ class epitopes:
           c.close()
           content = storage.getvalue()
           soup = BeautifulSoup(content,'html.parser')
-          tables = soup.find_all("table")
+          '\t'les = soup.find_all("table")
           #temprows = unicode(rows, "utf-8",errors="ignore")
           if(len(tables) >1):
             rows = tables[1].find_all("tr")
@@ -359,9 +359,8 @@ patientId = argument[4]
 tab = "\t"
 
 
-command = "python "+filepath+"/mhc_i/src/predict_binding.py netmhcpan " + argument[1] +" "+ argument[2] +" "+ inputFile + " > "  +   outputNetmhcpanFile
-command1 = "python "+filepath+"/mhc_i/src/predict_binding.py IEDB_recommended " + argument[1] +" "+ str(peptideLen) +" "+ inputFile + " > " + outputIEDBFile
-
+command = "python "+filepath+"/src/predict_binding.py netmhcpan " + argument[1] +" "+ argument[2] +" "+ inputFile + " > "  +   outputNetmhcpanFile
+command1 = "python "+filepath+"/src/predict_binding.py IEDB_recommended " + argument[1] +" "+ str(peptideLen) +" "+ inputFile + " > " + outputIEDBFile
 
 
 #returncode = subprocess.call(command,shell=True)
@@ -371,7 +370,7 @@ method = "IEDB"
 
 if os.path.getsize(outputIEDBFile) ==0:
   method= "NETMHC"
-  commandnetMhc = "python "+filepath+"/mhc_i/src/predict_binding.py netmhcpan " + argument[1] +" "+ str(peptideLen) +" "+ inputFile + " > " + outputIEDBFile
+  commandnetMhc = "python "+filepath+"/src/predict_binding.py netmhcpan " + argument[1] +" "+ str(peptideLen) +" "+ inputFile + " > " + outputIEDBFile
   returncode = subprocess.call(commandnetMhc,shell=True)
 
 '''
