@@ -604,22 +604,22 @@ def getDataIEDB(dataMapArr, num, transcript):
   return tuple(t)
 
 def getHeaderText():
-  return "PatientId"+tab+   "Allele"  + tab  + "Gene-transcript" + tab+ \
-         "Mutant" +tab+    "Start_15mer"  +tab+  "Peptide_15mer" +tab+  "IEDB_Binding_15mer" +tab+ \
-                           "Start_Position_17mer"  +tab+    "Peptide_17mer" +tab+ "IEDB_Binding_17mer"  +tab+ \
-                           "Start_Position_19mer" +tab+    "Peptide_19mer" +tab+  "IEDB_Binding_19mer" +tab+  \
-                           "Start_Position_21mer"  +tab+   "Peptide_21mer" +tab+ "IEDB_Binding_21mer" +tab+ \
-                           "BestPeptide_Mutant" +tab + "BestScore_Mutant" +tab + "BestScoreMer_Mutant"  +tab+ \
-          "WildType" +tab+ "Start_15mer"  +tab+  "Peptide_15mer"  +tab+ "IEDB_Binding_15mer"  +tab+ \
-                         "Start_Position_17mer"   +tab+  "Peptide_17mer" +tab+ "IEDB_Binding_17mer" +tab+\
-                          "Start_Position_19mer"   +tab+  "Peptide_19mer"+tab+  "IEDB_Binding_19mer"  +tab+ \
-                          "Start_Position_21mer"    +tab+ "Peptide_21mer" +tab+ "IEDB_Binding_21mer" +tab+  \
-                          "BestPeptide_WildType" +tab+ "BestScore_WildType"   +tab+ "BestScoreMer_WildType"   +tab+ \
-          "Same_Seq" +tab+ "Start_15mer"   +tab+ "Peptide_15mer" +tab+ "IEDB_Binding_15mer"  +tab+ \
-                          "Start_Position_17mer"  +tab+   "Peptide_17mer" +tab+ "IEDB_Binding_17mer"  +tab+ \
-                          "Start_Position_19mer"  +tab+   "Peptide_19mer" +tab+ "IEDB_Binding_19mer"  +tab+ \
-                          "Start_Position_21mer"   +tab+  "Peptide_21mer" +tab+ "IEDB_Binding_21mer" +tab+ \
-                          "BestPeptide_SameSeq" +tab+ "BestScore_SameSeq"  +tab + "BestScoreMer_SameSeq"  +tab + \
+  return "PatientId"+'\t'+   "Allele"  + '\t'  + "Gene-transcript" + '\t'+ \
+         "Mutant" +'\t'+    "Start_15mer"  +'\t'+  "Peptide_15mer" +'\t'+  "IEDB_Binding_15mer" +'\t'+ \
+                           "Start_Position_17mer"  +'\t'+    "Peptide_17mer" +'\t'+ "IEDB_Binding_17mer"  +'\t'+ \
+                           "Start_Position_19mer" +'\t'+    "Peptide_19mer" +'\t'+  "IEDB_Binding_19mer" +'\t'+  \
+                           "Start_Position_21mer"  +'\t'+   "Peptide_21mer" +'\t'+ "IEDB_Binding_21mer" +'\t'+ \
+                           "BestPeptide_Mutant" +'\t' + "BestScore_Mutant" +'\t' + "BestScoreMer_Mutant"  +'\t'+ \
+          "WildType" +'\t'+ "Start_15mer"  +'\t'+  "Peptide_15mer"  +'\t'+ "IEDB_Binding_15mer"  +'\t'+ \
+                         "Start_Position_17mer"   +'\t'+  "Peptide_17mer" +'\t'+ "IEDB_Binding_17mer" +'\t'+\
+                          "Start_Position_19mer"   +'\t'+  "Peptide_19mer"+'\t'+  "IEDB_Binding_19mer"  +'\t'+ \
+                          "Start_Position_21mer"    +'\t'+ "Peptide_21mer" +'\t'+ "IEDB_Binding_21mer" +'\t'+  \
+                          "BestPeptide_WildType" +'\t'+ "BestScore_WildType"   +'\t'+ "BestScoreMer_WildType"   +'\t'+ \
+          "Same_Seq" +'\t'+ "Start_15mer"   +'\t'+ "Peptide_15mer" +'\t'+ "IEDB_Binding_15mer"  +'\t'+ \
+                          "Start_Position_17mer"  +'\t'+   "Peptide_17mer" +'\t'+ "IEDB_Binding_17mer"  +'\t'+ \
+                          "Start_Position_19mer"  +'\t'+   "Peptide_19mer" +'\t'+ "IEDB_Binding_19mer"  +'\t'+ \
+                          "Start_Position_21mer"   +'\t'+  "Peptide_21mer" +'\t'+ "IEDB_Binding_21mer" +'\t'+ \
+                          "BestPeptide_SameSeq" +'\t'+ "BestScore_SameSeq"  +'\t' + "BestScoreMer_SameSeq"  +'\t' + \
                            "isSameHLA\n"
 
 def getActualScores(peptide,IEDB,NetMhc,Syfp):
