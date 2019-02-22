@@ -11,12 +11,13 @@ import functions
 import math
 import time
 import psutil
+import os
 
 ## Get the current directory
 filepath = os.path.dirname(os.path.realpath(__file__)) + "/"
 hlapath = filepath+ "hla"
-allfiles = [f for f in listdir(hlapath) if isfile(join(hlapath, f)) and f.endswith(".txt")]
-allfiles = set(allfiles)
+# allfiles = [f for f in listdir(hlapath) if isfile(join(hlapath, f)) and f.endswith(".txt")]
+# allfiles = set(allfiles)
 length = 11
 tab = "\t"
 #print allfiles
@@ -28,12 +29,13 @@ IEDBList = set(functions.readIEDB())
 netmhcpanList = set(functions.readnetmhcpan())
 
 file_hlas_map =dict();
-for file in allfiles:
-     file_hlas_map[file] = list();
-     with open(hlapath+ "/"+ file) as f:
-          for line in f:
-               hlas = line.strip().split("\t")
-               file_hlas_map[file].extend(list(set(hlas[1:len(hlas)])))
+# for file in allfiles:
+file=sys.argv[2]
+file_hlas_map[file] = list();
+with open(hlapath+ "/"+ file) as f:
+     for line in f:
+          hlas = line.strip().split("\t")
+          file_hlas_map[file].extend(list(set(hlas[1:len(hlas)])))
 
 outputFolder =  str(datetime.utcnow()).replace(" ","-").replace(":","-").replace(".","-") + "/"
 outputFilePath = filepath + "output/" + outputFolder
@@ -100,21 +102,22 @@ for key, value in file_hlas_map.items():
 for index, patient in enumerate(patientSet):
      processPatient = True
      while processPatient and index < len(patientSet)  :
-          if psutil.cpu_percent() < 85.0:
-               hlas = patientHlaMAP[patient]
-               print patient + "-- " + str(hlas)
-               for hla in hlas:
-                    #if not os.path.exists(outputFilePath+ patient +"/" + hla.replace(":","-") + "/"):
-                    os.makedirs(outputFilePath+ patient +"/" + hla.replace(":","-") + "/")
-                    for num in isomers:
-                         filename = "TCGA-" + patient +"_Varscan_variants_filter.pass."+ str(num) +".peptide"
-                         functions.writeInputFile(filepath + "/peptides/", filename, patient,str(num))
-                         proc = subprocess.Popen([sys.executable, 'epitope.py', hla, num , filename,  patient, outputFolder, syfpeithiStr, IEDBStr, netmhcpanStr])
-                         procs.append(proc)
-               processPatient = False
-               time.sleep(5)
-          else:
-               time.sleep(60)
+          # if psutil.cpu_percent() < 85.0:
+          hlas = patientHlaMAP[patient]
+          print patient + "-- " + str(hlas)
+          for hla in hlas:
+               #if not os.path.exists(outputFilePath+ patient +"/" + hla.replace(":","-") + "/"):
+               os.makedirs(outputFilePath+ patient +"/" + hla.replace(":","-") + "/")
+               for num in isomers:
+                    # filename = "TCGA-" + patient +"_Varscan_variants_filter.pass."+ str(num) +".peptide"
+                    filename = sys.argv[1] + str(num) + ".peptide"
+                    functions.writeInputFile(filepath + "/peptides/", filename, patient,str(num))
+                    proc = subprocess.Popen([sys.executable, 'epitope.py', hla, num , filename,  patient, outputFolder, syfpeithiStr, IEDBStr, netmhcpanStr])
+                    procs.append(proc)
+          processPatient = False
+          #      time.sleep(5)
+          # else:
+          #      time.sleep(60)
      print patient + tab + str(patientHlaMAP[patient])
 
 
