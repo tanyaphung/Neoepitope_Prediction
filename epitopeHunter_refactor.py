@@ -3,17 +3,12 @@ from os import listdir
 from os.path import isfile, join, dirname
 import os
 import sys
-# import subprocess
-from datetime import datetime
 from collections import defaultdict
-from collections import namedtuple
 from functions import *
 import math
-import time
-# import psutil
 import os
 import argparse
-# from mhc_i.src.predict_binding import Prediction
+from mhc_i.src.predict_binding import Prediction
 
 def parse_args():
      parser = argparse.ArgumentParser(description='Predict neoepitopes')
@@ -30,8 +25,6 @@ def parse_args():
 def main():
      args = parse_args()
 
-     tab = '\t'
-
      filepath = os.path.dirname(os.path.realpath(__file__)) + "/"
      outputFilePath = args.patientID
 
@@ -45,11 +38,18 @@ def main():
           hlas_superlist = [line.rstrip('\n').split('\t')[1:] for line in f]
           hlas = [item for sublist in hlas_superlist for item in sublist]
 
+     print hlas
+
+
      # Make output folder:
      if not os.path.exists(args.patientID):
           os.makedirs(args.patientID)
 
-     isomers = ['15', '17', '19', '21']
+     # peptide_len = ['15', '17', '19', '21']
+     # mer_len = ['8', '9', '10', '11']
+     peptide_len = ['15']
+     mer_len = ['8']
+
 
      ############################################
      # Make a dictionary mapping old and new hlas
@@ -60,7 +60,7 @@ def main():
      patientHlaMAP = defaultdict(list)
      for hla in hlas:
           item = hla.upper().split("_")
-          hla_newlabel = item[0] + "-" + item[1] + "_" + item[2] + ":" + item[3]
+          hla_newlabel = item[0] + "-" + item[1] + "*" + item[2] + ":" + item[3]
 
           syfpeithiStr = "False"
           IEDBStr = "False"
@@ -93,112 +93,132 @@ def main():
      ###########
      patient = args.patientID
      hlas = patientHlaMAP[patient]
-     # prediction = Prediction()
+     prediction = Prediction()
 
+     for hla in hlas:
+
+          items = hla.split(':')
+          hla_dirname = items[0] + '-' + items[1]
+          os.makedirs(args.patientID + '/' + hla_dirname)
+
+          for idx in range(len(mer_len)):
+
+              prediction.commandline_input_w_file('IEDB_recommended', hla, mer_len[idx], 'peptides/' + args.patientID + '.' + peptide_len[idx] + '.txt',
+                                                  args.patientID + '/' + hla_dirname + '/output_IEDB.' + peptide_len[idx] + '.txt')
+
+              score_dict = defaultdict(list)
+              with open(args.patientID + '/' + hla_dirname + '/output_IEDB.' + peptide_len[idx] + '.txt', 'r') as f:  # for example: HLA-A_24-02\output_IEDB.15.txt
+                  for line in f:
+                      if not line.startswith('allele'):
+                          tempLine = line.rstrip('\n').split('\t')
+                          if "netmhcpan" in tempLine[6]:
+                              score_dict[tempLine[5]].append(float(tempLine[14]))
+                          elif len(tempLine) < 9:
+                              score_dict[tempLine[5]].append(float(tempLine[6]))
+                          else:
+                              score_dict[tempLine[5]].append(float(tempLine[8]))
+
+              transcript = ""
+              trans_ = ""
+              counter = 0
+              # mutant_Map = defaultdict(list)  # Key is the transcript name and values are all the possible x-mers
+              # with open(sys.argv[4]) as f:  # open A7-A26G.15.txt
+
+              outfile = open(outputFilePath + '/' + hla_dirname + '/' + peptide_len[idx] + '_min_score.txt', "w")
+              with open('peptides/' + args.patientID + '.' + peptide_len[idx] + '.txt') as f:  # open A7-A26G.15.txt
+                  for line in f:
+                      seq = ""
+                      if ">" in line:
+                          transcript = line.strip().replace(">", "")
+                          trans_ = transcript.replace("MT.", "").replace("WT.", "")
+                          counter += 1
+                      else:
+                          seq = line.strip()
+                          counter += 1
+                      if counter % 2 == 0:
+                          if "MT." in transcript:
+                              peptideScore = defaultdict()
+                              all_mer_len_peptide = [seq[i:i + int(mer_len[idx])] for i in range(int(mer_len[idx]))]
+
+                              # print all_mer_len_peptide
+                              # for i in all_mer_len_peptide:
+                              #     mutant_Map[trans_].append(i)
+                              for mer_len_peptide in all_mer_len_peptide:
+                                  # print score_dict[mer_len_peptide]
+                                  if len(score_dict[mer_len_peptide]) != 0:
+                                      # print min(score_dict[mer_len_peptide])
+                                      peptideScore[mer_len_peptide] = min(score_dict[mer_len_peptide])
+                              # print peptideScore
+                              out = min(peptideScore.items(), key=lambda l: l[1])
+                              out_to_print = [trans_, out[0], str(out[1])]
+                              print >>outfile, '\t'.join(x for x in out_to_print)
+                  outfile.close()
+
+              # prediction.commandline_input_w_file('IEDB_recommended', hla, '9', 'peptides/' + args.patientID + '.17.txt', args.patientID + '/' + hla_dirname + '/output_IEDB.17.txt')
+              # prediction.commandline_input_w_file('IEDB_recommended', hla, '10', 'peptides/' + args.patientID + '.19.txt',
+              #                                args.patientID + '/' + hla_dirname + '/output_IEDB.19.txt')
+              #
+              # prediction.commandline_input_w_file('IEDB_recommended', hla, '11', 'peptides/' + args.patientID + '.21.txt',
+              #                                args.patientID + '/' + hla_dirname + '/output_IEDB.21.txt')
+
+
+
+     # ############
+     # # After IEDB
+     # ############
+     #
+     # # arguments should be the length of the mer and hla types
      # for hla in hlas:
+     #     for idx in range(len(mer_len)):
+     #         # mer_len = int(sys.argv[1])  # for example 8
+     #         # peptide_len = int(sys.argv[2])  # for example 15
      #
-     #      items = hla.split(':')
-     #      hla_dirname = items[0] + '-' + items[1]
-     #      os.makedirs(args.patientID + '/' + hla_dirname)
+     #         # Obtain a dictionary of score
      #
-     #      prediction.commandline_input_w_file('IEDB_recommended', hla, '8', 'peptides/' + args.patientID + '.15.txt',
-     #                                          args.patientID + '/' + hla_dirname + '/output_IEDB.15.txt')
-     #      prediction.commandline_input_w_file('IEDB_recommended', hla, '9', 'peptides/' + args.patientID + '.17.txt', args.patientID + '/' + hla_dirname + '/output_IEDB.17.txt')
-     #      prediction.commandline_input_w_file('IEDB_recommended', hla, '10', 'peptides/' + args.patientID + '.19.txt',
-     #                                     args.patientID + '/' + hla_dirname + '/output_IEDB.19.txt')
+     #         score_dict = defaultdict(list)  # key is the peptide and values are scores
+     #         score_file =
+     #         with open(sys.argv[3], 'r') as f: #for example: HLA-A_24-02\output_IEDB.15.txt
+     #              for line in f:
+     #                   if not line.startswith('allele'):
+     #                        tempLine = line.rstrip('\n').split('\t')
+     #                        if "netmhcpan" in tempLine[6]:
+     #                             score_dict[tempLine[5]].append(float(tempLine[14]))
+     #                        elif len(tempLine) < 9:
+     #                             score_dict[tempLine[5]].append(float(tempLine[6]))
+     #                        else:
+     #                             score_dict[tempLine[5]].append(float(tempLine[8]))
      #
-     #      prediction.commandline_input_w_file('IEDB_recommended', hla, '11', 'peptides/' + args.patientID + '.21.txt',
-     #                                     args.patientID + '/' + hla_dirname + '/output_IEDB.21.txt')
-
-
-     ############
-     # After IEDB
-     ############
-
-     fwrite = open(args.patientID + '/' + args.patientID + '.tsv', 'w')
-     fwrite.write(getHeaderText())
-
-     for old_hla in hlas:
-          items = old_hla.split(':')
-          hla = items[0] + '-' + items[1]
-          IEDB_transcriptMap_MT = defaultdict(list)
-          IEDB_transcriptMap_WT = defaultdict(list)
-          IEDB_TranscriptMap_SameSeq = defaultdict(list)
-          transcript_SET_G = set()
-          dataTuple = namedtuple("dataTuple", ("mer","data"))
-
-          for num in isomers: #TODO: make this parallel
-
-               transcript_SET, mutant_Map, wildType_Map = getMutantWildTypeData(filepath, patient, num)
-               peptideLenStr = "."+ str(num) + ".txt"
-
-               outputFolder = getFilePath(outputFilePath,hla,patient)
-               outputIEDBFile= outputFolder + "output_IEDB" + peptideLenStr
-               IEDBMap, IEDBTuples =  getMapwithValuesIEDB(outputIEDBFile)
-
-               ###################################################
-               # Transcript - peptide - min score
-               ###################################################
-
-               peptideSet = set()
-               transcript_SET_G = transcript_SET
-               # sameSeqTupleList= list()
-               for t in transcript_SET:
-                    mutantLowestScoreTuple = getLowestScore(mutant_Map[t][0], IEDBTuples )
-                    IEDB_transcriptMap_MT[t].append( dataTuple( mer = num, data = mutantLowestScoreTuple))
-                    IEDB_transcriptMap_WT[t].append(dataTuple( mer= num, data = getLowestScore(wildType_Map[t][0], IEDBTuples )))
-                    IEDB_TranscriptMap_SameSeq[t].append(dataTuple( mer= num, data = getSameSeqScore(mutantLowestScoreTuple, wildType_Map[t][0], IEDBTuples )))
-                    peptideSet.update(getPeptides(IEDB_transcriptMap_MT[t],num))
-                    peptideSet.update(getPeptides(IEDB_transcriptMap_WT[t],num) )
-                    peptideSet.update(getPeptides(IEDB_TranscriptMap_SameSeq[t],num) )
-
-          for transcript in transcript_SET_G:
-               fwrite.write(patient+  '\t' + hla+ '\t' + transcript )
-               merList  = list()
-               for num in isomers:
-                    position, peptide, bindingScore = getData(IEDB_transcriptMap_MT[transcript], num)
-                    merList.append((num,float(bindingScore), peptide))
-                    if num == "15":
-                         fwrite.write('\t'  + "MT")
-                    fwrite.write('\t' + str(position) + '\t' + str(peptide) + '\t' + str(bindingScore))
-               fileData = getFinalMer(merList)
-               mer = fileData[0]
-               score = fileData[1]
-               peptide = fileData[2]
-               fwrite.write(tab+ peptide + tab + mer + tab+ str(score))
-
-               merList  = list()
-               for num in isomers:
-                    position, peptide, bindingScore = getData(IEDB_transcriptMap_WT[transcript], num)
-                    merList.append((num,float(bindingScore),peptide))
-                    if num == "15":
-                         fwrite.write(tab  + "WT")
-                    fwrite.write(tab + str(position) + tab + str(peptide) + tab + str(bindingScore))
-               fileData = getFinalMer(merList)
-               mer = fileData[0]
-               score = fileData[1]
-               peptide = fileData[2]
-               fwrite.write(tab+ peptide + tab + mer + tab+ str(score))
-
-               merList  = list()
-               for num in isomers:
-                    position, peptide, bindingScore = getData(IEDB_TranscriptMap_SameSeq[transcript], num)
-                    merList.append((num,float(bindingScore),peptide))
-                    if num == "15":
-                         fwrite.write(tab  + "Same_Seq")
-                    fwrite.write(tab + str(position) + tab + str(peptide) + tab + str(bindingScore))
-               fileData = getFinalMer(merList)
-               mer = fileData[0]
-               score = fileData[1]
-               peptide = fileData[2]
-               fwrite.write(tab+ peptide + tab + mer + tab+ str(score))
-
-               newHla = getNewHLA(newOldHLAMap, old_hla)
-               fwrite.write(tab + newHla+"\n")
-
-
-     fwrite.close()
-
+     #         transcript = ""
+     #         trans_ = ""
+     #         counter = 0
+     #         mutant_Map = defaultdict(list)  # Key is the transcript name and values are all the possible x-mers
+     #         with open(sys.argv[4]) as f:  # open A7-A26G.15.txt
+     #              for line in f:
+     #                   seq = ""
+     #                   if ">" in line:
+     #                        transcript = line.strip().replace(">", "")
+     #                        trans_ = transcript.replace("MT.", "").replace("WT.", "")
+     #                        counter += 1
+     #                   else:
+     #                        seq = line.strip()
+     #                        counter += 1
+     #                   if counter % 2 == 0:
+     #                        if "MT." in transcript:
+     #                             peptideScore = defaultdict()
+     #                             all_mer_len_peptide = [seq[i:i + mer_len] for i in range(mer_len)]
+     #
+     #                             # print all_mer_len_peptide
+     #                             # for i in all_mer_len_peptide:
+     #                             #     mutant_Map[trans_].append(i)
+     #                             for mer_len_peptide in all_mer_len_peptide:
+     #                                  # print score_dict[mer_len_peptide]
+     #                                  if len(score_dict[mer_len_peptide]) != 0:
+     #                                       # print min(score_dict[mer_len_peptide])
+     #                                       peptideScore[mer_len_peptide] = min(score_dict[mer_len_peptide])
+     #                             # print peptideScore
+     #                             out = min(peptideScore.items(), key=lambda l: l[1])
+     #                             out_to_print = [trans_, out[0], str(out[1])]
+     #                             print '\t'.join(x for x in out_to_print)
 
 
 if __name__ == '__main__':
